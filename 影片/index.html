@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動課文與動畫目錄</title>
+    <title>互動課文與動畫檔案目錄</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", sans-serif;
@@ -58,18 +58,26 @@
         // 設定您的 GitHub 資訊
         const owner = 'aday0123';
         const repo = 'data';
-        const path = '影片'; // 如果有中文，API 會自動處理
+        const folderName = '影片'; 
 
-        // 1. 構建 GitHub API 請求網址，用來獲取目錄下的所有檔案
-        const apiUrl = `https://github.com{owner}/${repo}/contents/${path}`;
+        // 1. 使用 encodeURIComponent 將中文資料夾名稱編碼，避免 API 辨識出錯
+        const encodedPath = encodeURIComponent(folderName);
+        const apiUrl = `https://github.com{owner}/${repo}/contents/${encodedPath}`;
 
-        // 2. 構建您 GitHub Pages 的基礎網址 (請確認您的 Pages 是對應到 data 檔案庫)
-        const pagesBaseUrl = `https://${owner}.github.io/${repo}/${path}/`;
+        // 2. 您的 GitHub Pages 基礎網址
+        const pagesBaseUrl = `https://${owner}.github.io/${repo}/${folderName}/`;
 
         async function fetchFiles() {
             try {
                 const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error('無法取得檔案列表');
+                
+                // 如果遇到 API 限制或其他錯誤，顯示具體原因
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('觸發 GitHub API 流量限制，請稍等幾分鐘後再重新整理網頁。');
+                    }
+                    throw new Error(`無法取得檔案列表 (錯誤碼: ${response.status})`);
+                }
                 
                 const files = await response.json();
                 const fileListElement = document.getElementById('file-list');
@@ -92,10 +100,10 @@
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     
-                    // 使用 encodeURIComponent 確保中文檔名在 URL 中不會壞掉
+                    // 使用 encodeURIComponent 確保個別檔案的中文檔名連結正確
                     a.href = pagesBaseUrl + encodeURIComponent(file.name);
-                    a.textContent = file.name.replace('.html', ''); // 移除副檔名讓畫面更美觀
-                    a.target = '_blank'; // 由新分頁開啟課文
+                    a.textContent = file.name.replace('.html', ''); // 移除副檔名讓畫面美觀
+                    a.target = '_blank'; // 由新分頁開啟
 
                     li.appendChild(a);
                     fileListElement.appendChild(li);
@@ -103,7 +111,7 @@
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('loading').textContent = '載入失敗，請檢查網際網路連線或儲存庫設定。';
+                document.getElementById('loading').textContent = error.message || '載入失敗，請檢查網路連線或儲存庫設定。';
             }
         }
 
@@ -112,4 +120,3 @@
     </script>
 </body>
 </html>
-
