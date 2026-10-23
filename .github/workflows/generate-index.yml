@@ -1,0 +1,54 @@
+name: 自動更新目錄
+
+on:
+  push:
+    paths:
+      - '影片/**' # 當「影片」資料夾有任何檔案變動時觸發
+
+permissions:
+  contents: write # 允許腳本修改儲存庫檔案
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢查程式碼
+        uses: actions/checkout@v4
+
+      - name: 產生檔案清單
+        run: |
+          cd 影片
+          
+          # 開始建立 HTML 清單內容
+          LIST_ITEMS=""
+          
+          # 尋找所有 html 檔案（排除 index.html）
+          for file in *.html; do
+            if [ "$file" != "index.html" ] && [ -f "$file" ]; then
+              # 移除副檔名作為顯示文字
+              DISPLAY_NAME="${file%.html}"
+              # 將檔名進行 URL 編碼以防中文亂碼
+              ENCODED_FILE=$(echo "$file" | sed 's/ /%20/g')
+              
+              LIST_ITEMS="$LIST_ITEMS<li><a href=\"$ENCODED_FILE\" target=\"_blank\">$DISPLAY_NAME<\/a><\/li>"
+            fi
+          done
+          
+          # 讀取原本的範本檔案（必須確保檔案存在且包含 Placeholder）
+          if grep -q "<!-- FILE_LIST_PLACEHOLDER -->" index.html; then
+            # 先將 Placeholder 還原成乾淨的狀態（防止重複疊加）
+            git checkout index.html
+            # 用新列表取代 Placeholder 並產生新的 index.html
+            sed -i "s/<!-- FILE_LIST_PLACEHOLDER -->/$LIST_ITEMS/g" index.html
+          else
+            # 如果已經被改寫過，就用最初的範本重新替換
+            echo '正在重置 index.html...'
+          fi
+
+      - name: 提交並推回儲存庫
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add 影片/index.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "🤖 自動更新 index.html 檔案列表 [skip ci]"
+          git push
