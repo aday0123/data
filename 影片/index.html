@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動課文與動畫目錄</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #0076d6;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 12px 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        li:hover {
+            transform: translateX(5px);
+        }
+        a {
+            color: #0076d6;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📚 互動課文與動畫檔案目錄</h1>
+    <div id="loading" class="loading">正在載入檔案列表，請稍候...</div>
+    <ul id="file-list"></ul>
+
+    <script>
+        // 設定您的 GitHub 資訊
+        const owner = 'aday0123';
+        const repo = 'data';
+        const path = '影片'; // 如果有中文，API 會自動處理
+
+        // 1. 構建 GitHub API 請求網址，用來獲取目錄下的所有檔案
+        const apiUrl = `https://github.com{owner}/${repo}/contents/${path}`;
+
+        // 2. 構建您 GitHub Pages 的基礎網址 (請確認您的 Pages 是對應到 data 檔案庫)
+        const pagesBaseUrl = `https://${owner}.github.io/${repo}/${path}/`;
+
+        async function fetchFiles() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('無法取得檔案列表');
+                
+                const files = await response.json();
+                const fileListElement = document.getElementById('file-list');
+                document.getElementById('loading').style.display = 'none';
+
+                // 3. 篩選出 HTML 檔案，並排除 index.html 本身
+                const htmlFiles = files.filter(file => 
+                    file.type === 'file' && 
+                    file.name.endsWith('.html') && 
+                    file.name !== 'index.html'
+                );
+
+                if (htmlFiles.length === 0) {
+                    fileListElement.innerHTML = '<li>目前資料夾內沒有其他 HTML 課文檔案。</li>';
+                    return;
+                }
+
+                // 4. 將檔案轉換為超連結並渲染到網頁上
+                htmlFiles.forEach(file => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    
+                    // 使用 encodeURIComponent 確保中文檔名在 URL 中不會壞掉
+                    a.href = pagesBaseUrl + encodeURIComponent(file.name);
+                    a.textContent = file.name.replace('.html', ''); // 移除副檔名讓畫面更美觀
+                    a.target = '_blank'; // 由新分頁開啟課文
+
+                    li.appendChild(a);
+                    fileListElement.appendChild(li);
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').textContent = '載入失敗，請檢查網際網路連線或儲存庫設定。';
+            }
+        }
+
+        // 啟動執行
+        fetchFiles();
+    </script>
+</body>
+</html>
 
