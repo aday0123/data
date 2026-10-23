@@ -23,7 +23,7 @@
         }
         li {
             margin: 12px 0;
-            padding: 10px;
+            padding: 15px;
             background: #fff;
             border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -31,6 +31,7 @@
         }
         li:hover {
             transform: translateX(5px);
+            background-color: #f0f7ff;
         }
         a {
             color: #0076d6;
@@ -42,81 +43,24 @@
         a:hover {
             text-decoration: underline;
         }
-        .loading {
-            color: #666;
-            font-style: italic;
-        }
     </style>
 </head>
 <body>
 
     <h1>📚 互動課文與動畫檔案目錄</h1>
-    <div id="loading" class="loading">正在載入檔案列表，請稍候...</div>
-    <ul id="file-list"></ul>
+    
+    <ul>
+        <!-- 💡 以後有新檔案，就依樣畫葫蘆在下面多複製一行 <li>...</li> 即可 -->
+        <li>
+            <a href="第七課 美景閒情—詩兩首 | 互動課文動畫.html" target="_blank">第七課 美景閒情—詩兩首 | 互動課文動畫</a>
+        </li>
+        <li>
+            <a href="第十一課_你一定會聽見的_互動課文動畫_時間修正版.html" target="_blank">第十一課 你一定會聽見的 (互動課文動畫 時間修正版)</a>
+        </li>
+        <li>
+            <a href="第十二課 藍色連身裙 | 互動課文動畫.html" target="_blank">第十二課 藍色連身裙 | 互動課文動畫</a>
+        </li>
+    </ul>
 
-    <script>
-        // 設定您的 GitHub 資訊
-        const owner = 'aday0123';
-        const repo = 'data';
-        const folderName = '影片'; 
-
-        // 1. 使用 encodeURIComponent 將中文資料夾名稱編碼，避免 API 辨識出錯
-        const encodedPath = encodeURIComponent(folderName);
-        const apiUrl = `https://github.com{owner}/${repo}/contents/${encodedPath}`;
-
-        // 2. 您的 GitHub Pages 基礎網址
-        const pagesBaseUrl = `https://${owner}.github.io/${repo}/${folderName}/`;
-
-        async function fetchFiles() {
-            try {
-                const response = await fetch(apiUrl);
-                
-                // 如果遇到 API 限制或其他錯誤，顯示具體原因
-                if (!response.ok) {
-                    if (response.status === 403) {
-                        throw new Error('觸發 GitHub API 流量限制，請稍等幾分鐘後再重新整理網頁。');
-                    }
-                    throw new Error(`無法取得檔案列表 (錯誤碼: ${response.status})`);
-                }
-                
-                const files = await response.json();
-                const fileListElement = document.getElementById('file-list');
-                document.getElementById('loading').style.display = 'none';
-
-                // 3. 篩選出 HTML 檔案，並排除 index.html 本身
-                const htmlFiles = files.filter(file => 
-                    file.type === 'file' && 
-                    file.name.endsWith('.html') && 
-                    file.name !== 'index.html'
-                );
-
-                if (htmlFiles.length === 0) {
-                    fileListElement.innerHTML = '<li>目前資料夾內沒有其他 HTML 課文檔案。</li>';
-                    return;
-                }
-
-                // 4. 將檔案轉換為超連結並渲染到網頁上
-                htmlFiles.forEach(file => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    
-                    // 使用 encodeURIComponent 確保個別檔案的中文檔名連結正確
-                    a.href = pagesBaseUrl + encodeURIComponent(file.name);
-                    a.textContent = file.name.replace('.html', ''); // 移除副檔名讓畫面美觀
-                    a.target = '_blank'; // 由新分頁開啟
-
-                    li.appendChild(a);
-                    fileListElement.appendChild(li);
-                });
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading').textContent = error.message || '載入失敗，請檢查網路連線或儲存庫設定。';
-            }
-        }
-
-        // 啟動執行
-        fetchFiles();
-    </script>
 </body>
 </html>
